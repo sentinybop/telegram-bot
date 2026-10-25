@@ -8,6 +8,7 @@ from aiogram import Bot
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+tappercount={}
     #load bot token from env
 load_dotenv()
 token = os.getenv('BOT_TOKEN')
@@ -22,6 +23,10 @@ def build_menu(a): # main menu
     if a == 'mainmenu':
         builder.button(text='button 1', callback_data='1')
         builder.button(text='button 2', callback_data='2')
+        builder.button(text='tapper', callback_data='tapper')
+    elif a =='count':
+        builder.button(text='tap = +1', callback_data='count')
+        builder.button(text='back', callback_data='back')    
     elif a == 'back':
         builder.button(text='back', callback_data='back')     
     return builder      
@@ -48,6 +53,12 @@ async def button_back(callback: CallbackQuery):
     mainmenu=build_menu('mainmenu')
     await callback.message.edit_text('choose: ', reply_markup=mainmenu.as_markup())   
     await callback.answer()
+@dp.callback_query(F.data == 'tapper')
+async def tapper(callback: CallbackQuery):
+    user_id= callback.from_user.id
+    count = tappercount.get(user_id, 0)
+    await callback.message.edit_text(f'your count {count}!', reply_markup=build_menu('count').as_markup())
+    await callback.answer()  
 async def main(): # start bot
     bot = Bot(token=token)
     await dp.start_polling(bot)
