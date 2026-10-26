@@ -1,5 +1,6 @@
 import os
 import asyncio
+from storage import RWcounters
 from dotenv import load_dotenv
 from aiogram import Dispatcher
 from aiogram.filters import Command
@@ -8,16 +9,17 @@ from aiogram import Bot
 from aiogram import F
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-tappercount={}
-    #load bot token from env
+
+#load bot token from env
 load_dotenv()
 token = os.getenv('BOT_TOKEN')
 if token is None:
     raise SystemExit('bot token not found. check .env')
+c=RWcounters('users_count.json')
 dp=Dispatcher()
 @dp.message(Command('start')) #answer for /start
 async def cmd_start(message: Message):
-    await message.answer('Helloo') 
+    await message.answer('Helloo')
 def build_menu(a): # main menu
     builder = InlineKeyboardBuilder()
     if a == 'mainmenu':
@@ -53,18 +55,17 @@ async def button_back(callback: CallbackQuery):
     mainmenu=build_menu('mainmenu')
     await callback.message.edit_text('choose: ', reply_markup=mainmenu.as_markup())   
     await callback.answer()
-@dp.callback_query(F.data == 'tapper')
+@dp.callback_query(F.data == 'tapper') # button to tapper
 async def tapper(callback: CallbackQuery):
     user_id= callback.from_user.id
-    count = tappercount.get(user_id, 0)
+    count = c.count_read(user_id)
     await callback.message.edit_text(f'your count {count}!', reply_markup=build_menu('count').as_markup())
     await callback.answer()
-@dp.callback_query(F.data== 'count')
+@dp.callback_query(F.data== 'count') # +1 to count
 async def tap_plus(callback: CallbackQuery):
     user_id= callback.from_user.id
-    count = tappercount.get(user_id, 0)
-    count = count + 1
-    tappercount[user_id] = count
+    c.add_one(user_id)
+    count = c.count_read(user_id)
     await callback.message.edit_text(f'your count {count}!', reply_markup=build_menu('count').as_markup())
     await callback.answer()  
 async def main(): # start bot
