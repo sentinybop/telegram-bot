@@ -58,6 +58,14 @@ async def tapper(callback: CallbackQuery):
     user_id= callback.from_user.id
     count = tappercount.get(user_id, 0)
     await callback.message.edit_text(f'your count {count}!', reply_markup=build_menu('count').as_markup())
+    await callback.answer()
+@dp.callback_query(F.data== 'count')
+async def tap_plus(callback: CallbackQuery):
+    user_id= callback.from_user.id
+    count = tappercount.get(user_id, 0)
+    count = count + 1
+    tappercount[user_id] = count
+    await callback.message.edit_text(f'your count {count}!', reply_markup=build_menu('count').as_markup())
     await callback.answer()  
 async def main(): # start bot
     bot = Bot(token=token)
