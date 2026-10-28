@@ -1,6 +1,6 @@
 import os
 import asyncio
-from storage import RWcounters
+from storagedb import db
 from dotenv import load_dotenv
 from aiogram import Dispatcher
 from aiogram.filters import Command
@@ -15,7 +15,7 @@ load_dotenv()
 token = os.getenv('BOT_TOKEN')
 if token is None:
     raise SystemExit('bot token not found. check .env')
-c=RWcounters('users_count.json')
+c=db('users_id.db')
 dp=Dispatcher()
 @dp.message(Command('start')) #answer for /start
 async def cmd_start(message: Message):
