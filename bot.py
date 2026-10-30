@@ -26,11 +26,17 @@ def build_menu(a): # main menu
         builder.button(text='button 1', callback_data='1')
         builder.button(text='button 2', callback_data='2')
         builder.button(text='tapper', callback_data='tapper')
+        builder.button(text='settings', callback_data='settings')
     elif a =='count':
         builder.button(text='tap = +1', callback_data='count')
         builder.button(text='back', callback_data='back')    
     elif a == 'back':
-        builder.button(text='back', callback_data='back')     
+        builder.button(text='back', callback_data='back')  
+    elif a == 'settings':
+        builder.button(text ='morning', callback_data='mode_morning')
+        builder.button(text ='afternoon', callback_data='mode_afternoon')
+        builder.button(text ='evening', callback_data='mode_evening')
+        builder.button(text='back', callback_data='back')
     return builder      
 @dp.message(Command('menu')) # builder menu on message
 async def menu(message: Message):
@@ -67,7 +73,24 @@ async def tap_plus(callback: CallbackQuery):
     c.add_one(user_id)
     count = c.count_read(user_id)
     await callback.message.edit_text(f'your count {count}!', reply_markup=build_menu('count').as_markup())
-    await callback.answer()  
+    await callback.answer()
+@dp.callback_query(F.data == 'settings')
+async def settings(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    mode = c.get_mode(user_id)
+    await callback.message.edit_text(f'when would you like to receive notifications? (you receive notifications at {mode})', reply_markup=build_menu('settings').as_markup())      
+    await callback.answer()
+@dp.callback_query(F.data.startswith('mode_'))
+async def select_mode(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    mode = callback.data.split('_')[1]
+    modeget = c.get_mode(user_id)
+    if mode == modeget:
+        await callback.answer()
+    else:
+        c.set_mode(user_id, mode)    
+        await callback.message.edit_text(f'when would you like to receive notifications? (you receive notifications at {mode})', reply_markup=build_menu('settings').as_markup())      
+        await callback.answer()
 async def main(): # start bot
     bot = Bot(token=token)
     await dp.start_polling(bot)
